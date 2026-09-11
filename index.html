@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💘 Love Calculator — Find Your Match %</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --pink: #ff4d8d;
+    --purple: #8b5cf6;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(ellipse at top, #2b1055 0%, #17062e 45%, #0a0116 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  #hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .bg-heart {
+    position: absolute;
+    bottom: -60px;
+    font-size: 20px;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0deg) scale(.7); opacity: 0; }
+    10%  { opacity: .55; }
+    90%  { opacity: .35; }
+    100% { transform: translateY(-115vh) rotate(360deg) scale(1.1); opacity: 0; }
+  }
+
+  .card {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 28px;
+    padding: 36px 30px 32px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255,255,255,.12);
+    text-align: center;
+  }
+
+  .logo {
+    font-size: 52px;
+    line-height: 1;
+    margin-bottom: 10px;
+    animation: beat 1.4s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    14%      { transform: scale(1.18); }
+    28%      { transform: scale(1); }
+    42%      { transform: scale(1.12); }
+    70%      { transform: scale(1); }
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #ff8fb1, #ff4d8d, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 6px;
+  }
+
+  .sub {
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 26px;
+  }
+
+  .field { text-align: left; margin-bottom: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 7px;
+    font-weight: 600;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    outline: none;
+    transition: border-color .25s, background .25s, box-shadow .25s;
+  }
+  .field input::placeholder { color: rgba(255,255,255,0.3); }
+  .field input:focus {
+    border-color: var(--pink);
+    background: rgba(255, 255, 255, 0.11);
+    box-shadow: 0 0 0 4px rgba(255, 77, 141, 0.15);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 4px 0 18px;
+    color: rgba(255,255,255,0.35);
+    font-size: 18px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  }
+
+  button.calc {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: .4px;
+    color: #fff;
+    background: linear-gradient(135deg, #ff4d8d, #8b5cf6);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .25s, filter .25s;
+    box-shadow: 0 10px 28px rgba(255, 77, 141, 0.35);
+  }
+  button.calc:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 16px 34px rgba(255, 77, 141, 0.45); }
+  button.calc:active { transform: translateY(1px) scale(.99); }
+
+  .error {
+    margin-top: 14px;
+    font-size: 13.5px;
+    color: #ff9db8;
+    min-height: 18px;
+    word-break: break-word;
+  }
+
+  #result {
+    display: none;
+    margin-top: 26px;
+    padding-top: 26px;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    animation: popIn .45s cubic-bezier(.2, 1.4, .5, 1);
+  }
+  #result.show { display: block; }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(.85) translateY(14px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .pair {
+    font-size: 15px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 14px;
+    word-break: break-word;
+  }
+  .pair b { color: #fff; }
+
+  .score {
+    font-size: 66px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -3px;
+    background: linear-gradient(90deg, #ff8fb1, #ff4d8d, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 24px rgba(255, 77, 141, 0.45));
+  }
+  .score.neg {
+    background: linear-gradient(90deg, #7dd3fc, #3b82f6, #6d28d9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 24px rgba(59, 130, 246, 0.5));
+  }
+  .score.mega {
+    background: linear-gradient(90deg, #fde047, #ff4d8d, #fde047);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(253, 224, 71, 0.75));
+    animation: megaPulse 1s ease-in-out infinite;
+  }
+  @keyframes megaPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.07); }
+  }
+
+  .bar {
+    height: 12px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.09);
+    overflow: hidden;
+    margin: 20px 0 16px;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #ff8fb1, #ff4d8d, #a78bfa);
+    transition: width 1.3s cubic-bezier(.2, .9, .3, 1);
+  }
+  .bar-fill.neg { background: linear-gradient(90deg, #3b82f6, #1e40af); }
+  .bar-fill.mega { background: linear-gradient(90deg, #fde047, #ff4d8d, #fde047); }
+
+  .verdict {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .note {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+  }
+
+  .badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: rgba(255,255,255,0.65);
+  }
+
+  .reset {
+    margin-top: 18px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .reset:hover { color: #fff; }
+
+  .confetti {
+    position: fixed;
+    top: -10vh;
+    font-size: 22px;
+    z-index: 999;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(120vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 420px) {
+    .card { padding: 28px 20px 26px; border-radius: 22px; }
+    .score { font-size: 54px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hearts"></div>
+
+<div class="card">
+  <div class="logo">💘</div>
+  <h1>Love Calculator</h1>
+  <p class="sub">Enter two names and discover your destiny</p>
+
+  <!-- No form tag needed. Plain inputs + a button = zero sandbox issues. -->
+  <div class="field">
+    <label for="nameA">First Name</label>
+    <input type="text" id="nameA" placeholder="e.g. Rahul" maxlength="30" autocomplete="off" />
+  </div>
+
+  <div class="divider">❤</div>
+
+  <div class="field">
+    <label for="nameB">Second Name</label>
+    <input type="text" id="nameB" placeholder="e.g. Priya" maxlength="30" autocomplete="off" />
+  </div>
+
+  <button type="button" id="calcBtn" class="calc">Calculate Love %</button>
+  <div class="error" id="error"></div>
+
+  <div id="result">
+    <div class="pair" id="pairText"></div>
+    <div class="score" id="scoreText">0%</div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="note" id="note"></div>
+    <div id="badgeWrap"></div>
+    <button class="reset" id="resetBtn" type="button">Try another pair</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   0. GLOBAL ERROR CATCHER — so failures are never silent
+   ============================================================ */
+window.onerror = function (msg, src, line, col) {
+  var e = document.getElementById('error');
+  if (e) e.textContent = '⚠️ Script error: ' + msg + ' (line ' + line + ')';
+  return false;
+};
+
+/* ============================================================
+   1. NAME NORMALISATION
+   ============================================================ */
+function canon(str) {
+  return String(str || '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')    // letters only
+    .replace(/h/g, '')         // shruti -> sruti
+    .replace(/(.)\1+/g, '$1'); // collapse doubles
+}
+
+/* Shruti family: Shruti, Sruti, Shuti, Sruthi, Shrooti, Shriti... */
+function isShruti(name) {
+  var c = canon(name);
+  if (!c) return false;
+  return c.indexOf('srut') === 0 ||
+         c.indexOf('sut')  === 0 ||
+         c === 'sroti' || c === 'sriti' || c === 'srti';
+}
+
+/* Priyank family: Priyanko, Priyankyo, Priyank, Priyanka... */
+function isPriyank(name) {
+  var c = canon(name);
+  if (!c) return false;
+  return c.indexOf('priyank') === 0 || c.indexOf('priyanky') === 0;
+}
+
+/* Aniket + Subhashree */
+function isAniket(name) {
+  return canon(name).indexOf('aniket') === 0;
+}
+function isSubhashree(name) {
+  var c = canon(name);
+  return c.indexOf('subas') === 0 || c.indexOf('subhas') === 0 || c.indexOf('subash') === 0;
+}
+
+/* ============================================================
+   2. DETERMINISTIC HASH (same pair = same result, always)
+   ============================================================ */
+function hashPair(a, b) {
+  var s = [a, b].sort().join('+');
+  var h = 2166136261;
+  for (var i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/* ============================================================
+   3. THE LOVE ENGINE
+   ============================================================ */
+function calculateLove(rawA, rawB) {
+  var a = String(rawA).trim();
+  var b = String(rawB).trim();
+
+  /* EXCEPTION 1: Aniket + Subhashree = 1000% */
+  if ((isAniket(a) && isSubhashree(b)) || (isAniket(b) && isSubhashree(a))) {
+    return {
+      type: 'mega',
+      value: 1000,
+      verdict: '💞 DESTINED. ABSOLUTELY DESTINED. 💞',
+      note: 'The universe itself wrote this one. 1000% is the highest score this calculator can physically produce — and it just did.',
+      badge: '⭐ LEGENDARY MATCH'
+    };
+  }
+
+  /* EXCEPTION 2: Shruti-family + Priyank-family = NEGATIVE */
+  if ((isShruti(a) && isPriyank(b)) || (isShruti(b) && isPriyank(a))) {
+    var hn = hashPair(a, b);
+    var neg = -((hn % 99) + 1);          // -1 to -99
+    return {
+      type: 'neg',
+      value: neg,
+      verdict: '🚩 WARNING: TOXIC COMBINATION DETECTED 🚩',
+      note: 'This pairing registered below zero on the love scale. The calculator recommends keeping a safe distance. Preferably a few time zones.',
+      badge: '☠️ CURSED PAIR'
+    };
+  }
+
+  /* NORMAL CASE: 0 – 100% */
+  var h = hashPair(a, b);
+  var pct = h % 101;
+  var verdict, note;
+
+  if (pct >= 95) {
+    verdict = '💍 PERFECT MATCH!';
+    note = 'Practically written in the stars. Start picking out the wedding colours.';
+  } else if (pct >= 80) {
+    verdict = '💖 Great Chemistry!';
+    note = 'Strong connection detected. This one has real potential.';
+  } else if (pct >= 60) {
+    verdict = '💕 Sweet Vibes';
+    note = 'A lovely match with plenty of room to grow together.';
+  } else if (pct >= 40) {
+    verdict = '🙂 It Could Work';
+    note = 'Give it some time, patience and maybe a shared playlist.';
+  } else if (pct >= 20) {
+    verdict = '😐 Just Friends?';
+    note = 'The spark is faint, but hey — friendships last longer anyway.';
+  } else if (pct >= 1) {
+    verdict = '🥶 Ice Cold';
+    note = 'The calculator checked twice. It is not optimistic.';
+  } else {
+    verdict = '💀 Absolute Zero';
+    note = 'Not a single spark. Not even a flicker. This is scientifically impressive.';
+  }
+
+  return { type: 'normal', value: pct, verdict: verdict, note: note, badge: null };
+}
+
+/* ============================================================
+   4. UI WIRING
+   ============================================================ */
+var inputA    = document.getElementById('nameA');
+var inputB    = document.getElementById('nameB');
+var calcBtn   = document.getElementById('calcBtn');
+var resetBtn  = document.getElementById('resetBtn');
+var errorEl   = document.getElementById('error');
+var resultEl  = document.getElementById('result');
+var pairEl    = document.getElementById('pairText');
+var scoreEl   = document.getElementById('scoreText');
+var barEl     = document.getElementById('barFill');
+var verdictEl = document.getElementById('verdict');
+var noteEl    = document.getElementById('note');
+var badgeWrap = document.getElementById('badgeWrap');
+
+var countTimer = null;
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function animateCount(target) {
+  clearInterval(countTimer);
+  var steps = 45;
+  var stepTime = 1000 / steps;
+  var i = 0;
+
+  countTimer = setInterval(function () {
+    i++;
+    var progress = i / steps;
+    var eased = 1 - Math.pow(1 - progress, 3);
+    var current = Math.round(target * eased);
+    scoreEl.textContent = current + '%';
+
+    if (i >= steps) {
+      clearInterval(countTimer);
+      scoreEl.textContent = target + '%';
+    }
+  }, stepTime);
+}
+
+function showResult(a, b, res) {
+  pairEl.innerHTML = '<b>' + escapeHtml(a) + '</b> &nbsp;❤&nbsp; <b>' + escapeHtml(b) + '</b>';
+
+  scoreEl.className = 'score' +
+    (res.type === 'neg'  ? ' neg'  : '') +
+    (res.type === 'mega' ? ' mega' : '');
+
+  barEl.className = 'bar-fill' +
+    (res.type === 'neg'  ? ' neg'  : '') +
+    (res.type === 'mega' ? ' mega' : '');
+
+  var width = res.type === 'neg' ? 4 : (res.type === 'mega' ? 100 : res.value);
+
+  barEl.style.width = '0%';
+  setTimeout(function () { barEl.style.width = width + '%'; }, 60);
+
+  verdictEl.textContent = res.verdict;
+  noteEl.textContent = res.note;
+
+  badgeWrap.innerHTML = res.badge ? '<div class="badge">' + res.badge + '</div>' : '';
+
+  resultEl.classList.add('show');
+  animateCount(res.value);
+
+  if (res.type === 'mega') burstConfetti();
+}
+
+/* ---------- THE MAIN ACTION ---------- */
+function runCalculation() {
+  try {
+    var a = inputA.value.trim();
+    var b = inputB.value.trim();
+
+    if (!a || !b) {
+      errorEl.textContent = '⚠️ Please enter both names.';
+      resultEl.classList.remove('show');
+      return;
+    }
+
+    errorEl.textContent = '';
+    var res = calculateLove(a, b);
+    showResult(a, b, res);
+
+    // Scroll the result into view on small screens
+    if (resultEl.scrollIntoView) {
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  } catch (err) {
+    errorEl.textContent = '⚠️ ' + err.message;
+  }
+}
+
+/* Direct click — works even inside sandboxed iframes */
+calcBtn.addEventListener('click', runCalculation);
+
+/* Enter key in either field also calculates */
+inputA.addEventListener('keydown', function (e) { if (e.key === 'Enter') runCalculation(); });
+inputB.addEventListener('keydown', function (e) { if (e.key === 'Enter') runCalculation(); });
+
+/* Reset */
+resetBtn.addEventListener('click', function () {
+  inputA.value = '';
+  inputB.value = '';
+  resultEl.classList.remove('show');
+  errorEl.textContent = '';
+  clearInterval(countTimer);
+  inputA.focus();
+});
+
+/* ============================================================
+   5. CONFETTI FOR THE 1000% MOMENT
+   ============================================================ */
+function burstConfetti() {
+  var emojis = ['💖','💞','💘','✨','🎉','💕','🌟','❤️','💝'];
+  for (var i = 0; i < 45; i++) {
+    (function (i) {
+      var el = document.createElement('div');
+      el.className = 'confetti';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.fontSize = (16 + Math.random() * 22) + 'px';
+      el.style.animationDuration = (2.4 + Math.random() * 2) + 's';
+      el.style.animationDelay = (Math.random() * 0.6) + 's';
+      document.body.appendChild(el);
+      setTimeout(function () { el.remove(); }, 5200);
+    })(i);
+  }
+}
+
+/* ============================================================
+   6. BACKGROUND FLOATING HEARTS
+   ============================================================ */
+(function backgroundHearts() {
+  var container = document.getElementById('hearts');
+  var glyphs = ['❤','💗','💓','💕','♡','💖'];
+  var colors = ['#ff4d8d','#a78bfa','#ff8fb1','#60a5fa'];
+
+  for (var i = 0; i < 18; i++) {
+    var h = document.createElement('div');
+    h.className = 'bg-heart';
+    h.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = (12 + Math.random() * 26) + 'px';
+    h.style.animationDuration = (10 + Math.random() * 14) + 's';
+    h.style.animationDelay = (Math.random() * 16) + 's';
+    h.style.color = colors[Math.floor(Math.random() * colors.length)];
+    container.appendChild(h);
+  }
+})();
+</script>
+</body>
+</html>
